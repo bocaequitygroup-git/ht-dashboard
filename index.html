@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HT Lifecycle Dashboard · VPOS-HT</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9f1ee;--card:#fbfdfc;--ink:#12302a;--mut:#5d756e;--line:#cfdcd7;--acc:#0f6b57;--on:#fff;--warn:#b3361f;--gold:#d79a1c;
+--avail:#dbe7e2;--pre:#f2d98a;--act:#5fb88a;--post:#b9a3d6;--hold:#e48f8f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1815;--card:#142520;--ink:#e3f0eb;--mut:#8fa9a1;--line:#27403a;--acc:#4fc3a1;--on:#08120f;--avail:#22362f;--pre:#6d5a1e;--act:#2c7a58;--post:#4d3f6e;--hold:#7a3434}}
+:root[data-theme="dark"]{--bg:#0c1815;--card:#142520;--ink:#e3f0eb;--mut:#8fa9a1;--line:#27403a;--acc:#4fc3a1;--on:#08120f;--avail:#22362f;--pre:#6d5a1e;--act:#2c7a58;--post:#4d3f6e;--hold:#7a3434}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Bricolage Grotesque",system-ui,Segoe UI,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+h1{font-size:19px;font-weight:800;margin:0;flex:1 1 220px}h1 small{display:block;font-weight:400;font-size:12px;color:var(--mut)}
+h2{font-size:15px;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center}h2 span{font-weight:400;color:var(--mut);font-size:12px}
+button,input,textarea{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:5px 10px}
+button{cursor:pointer}button.p{background:var(--acc);color:var(--on);border-color:var(--acc)}button.d{border-color:var(--warn);color:var(--warn)}button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:1px}button:disabled{opacity:.5}
+.pill{padding:3px 10px;border-radius:99px;font-size:12px;border:1px solid var(--line)}.pill.live{background:var(--acc);color:var(--on);border-color:var(--acc)}.pill.snap{background:var(--gold);color:#2a1d00;border-color:var(--gold)}
+.mut{color:var(--mut)}.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#tun{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;padding:14px 14px 4px}
+.tn{background:var(--card);border:1px solid var(--line);border-radius:40px 40px 6px 6px;padding:12px 8px 8px;text-align:center}
+.tn b{font-size:12px;display:block;margin-bottom:6px}.bd{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+.b{height:22px;border-radius:3px;background:var(--avail);border:1px solid var(--line);font-size:10px;line-height:20px;color:var(--mut)}
+.b.pre{background:var(--pre)}.b.active{background:var(--act);color:#fff}.b.post{background:var(--post)}.b.hold{background:var(--hold)}
+.leg{padding:0 14px;display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut)}.leg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:-1px;border:1px solid var(--line)}
+main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:12px;padding:12px 14px 24px}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
+.it{border-top:1px solid var(--line);padding:8px 0;display:flex;gap:8px;justify-content:space-between;align-items:flex-start}.it:first-of-type{border-top:0}
+.it>div{min-width:0}.tag{font-size:11px;padding:1px 7px;border-radius:99px;border:1px solid var(--line);white-space:nowrap}.tag.hi{border-color:var(--warn);color:var(--warn)}
+.bar{height:6px;background:var(--avail);border-radius:3px;margin-top:5px;overflow:hidden}.bar i{display:block;height:100%;background:var(--act)}.bar i.late{background:var(--gold)}
+.empty{color:var(--mut);padding:8px 0}
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);max-width:360px;width:92%}dialog::backdrop{background:#0008}
+dialog input{width:100%;margin:4px 0 10px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;display:none;z-index:9;max-width:90%}
+@media(max-width:700px){#tun{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style></head><body>
+<header>
+<h1>HT Lifecycle Dashboard<small>VPOS-HT · Junction City Ranch high tunnels</small></h1>
+<span id="mode" class="pill snap">Snapshot</span><span id="sync" class="mut" style="font-size:12px"></span><span id="who" class="mut" style="font-size:12px"></span>
+<div class="row"><button id="bTest">Test connection</button><button id="bRef">Refresh</button><button id="bAuth" class="p">Sign in</button></div>
+</header>
+<div id="tun"></div>
+<div class="leg"><span><i style="background:var(--avail)"></i>Available</span><span><i style="background:var(--pre)"></i>Pre-planting</span><span><i style="background:var(--act)"></i>Active</span><span><i style="background:var(--post)"></i>Awaiting verification</span><span><i style="background:var(--hold)"></i>Open exception</span></div>
+<main>
+<section><h2>Pending field verification<span id="nPend"></span></h2><div id="pend"></div></section>
+<section><h2>Active lifecycle<span id="nAct"></span></h2><div id="act"></div></section>
+<section><h2>Upcoming schedule<span>next 14 days</span></h2><div id="cal"></div></section>
+<section><h2>Crop watchguard<span id="nScout"></span></h2><div id="wg"></div></section>
+<section><h2>Worker location board<span id="nWk"></span></h2><div id="wk"></div></section>
+<section><h2>Exception overrides<span id="nEx"></span></h2><div id="ex"></div></section>
+</main>
+<dialog id="dlg"><form method="dialog" id="lf"><h2>Sign in</h2><label>Worker ID<input id="uId" autocomplete="username" placeholder="e.g. usr-manager1"></label><label>PIN<input id="uPin" type="password" inputmode="numeric" autocomplete="current-password"></label><div id="lErr" style="color:var(--warn);min-height:18px"></div><div class="row"><button type="submit" class="p" id="lGo">Sign in</button><button type="button" id="lX">Stay on snapshot</button></div></form></dialog>
+<div id="toast"></div>
+<script>
+const URL_='https://script.google.com/macros/s/AKfycbxOW7gq6C_jkWB5fVaFsO8sZmCwgsnPOU353own_8i-bPARdx0MGBKRjNO7lAPhZApTVw/exec';
+const CROPS={"MCH":["Mchicha",30,45,"GH_PROP","Leafy Greens"],"AMA-L":["Amaranth (Leafy)",30,45,"FIELD_DIRECT","Leafy Greens"],"SUK":["Sukuma Wiki",50,70,"GH_PROP","Leafy Greens"],"MUS":["Mustard Greens",35,45,"FIELD_DIRECT","Leafy Greens"],"CHD":["Swiss Chard",45,60,"GH_PROP","Leafy Greens"],"CPL":["Cowpea Leaves",40,60,"FIELD_DIRECT","Leafy Greens"],"SPD":["Spider Plant",30,50,"FIELD_DIRECT","Leafy Greens"],"UGW":["Ugwu",60,90,"GH_PROP","Leafy Greens (Cold-strain)"],"CAR":["Carrots",65,80,"FIELD_DIRECT","Cool-Season Roots"],"BET":["Beets",55,70,"FIELD_DIRECT","Cool-Season Roots"],"TUR":["Turnips",40,55,"FIELD_DIRECT","Cool-Season Roots"],"ONI":["Onions",90,120,"GH_PROP","Bulb Crops"],"LET":["Lettuce",45,60,"GH_PROP","Leafy Greens"],"KAL":["Kale",55,75,"GH_PROP","Leafy Greens"],"SPI":["Spinach",35,45,"FIELD_DIRECT","Leafy Greens"],"BRO":["Broccoli",60,80,"GH_PROP","Brassica"],"CAU":["Cauliflower",60,80,"GH_PROP","Brassica"],"CAB":["Cabbage",70,90,"GH_PROP","Brassica"],"COL":["Collard Greens",60,80,"GH_PROP","Brassica"]}; // Crop_Reference: id -> [name, firstHarvestMin, firstHarvestMax, path, category]
+const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const iso=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+const off=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)};
+const diff=s=>Math.round((new Date(s+'T00:00')-new Date(iso(new Date())+'T00:00'))/864e5);
+let SESS='',ME=null,LIVE=false,D,X;
+try{SESS=localStorage.getItem('ht-sess')||''}catch(e){}
+function snapshot(){const beds={};for(let t=1;t<=6;t++)for(let b=1;b<=6;b++){const id=`HT-B${t}-0${b}`;beds[id]={id,status:'AVAILABLE'}}
+ return {D:{beds,workers:['Lisa Griffin','James Clay'],
+  cohorts:[{id:'SUK-HT-2026-001',crop:'SUK',cropName:'Sukuma Wiki',status:'ACTIVE',bed:'HT-B1-01',dob:off(-40),vest:'OK'},
+   {id:'MCH-HT-2026-002',crop:'MCH',cropName:'Mchicha',status:'ACTIVE',bed:'HT-B1-02',dob:off(-33),vest:'OK'},
+   {id:'AMA-L-HT-2026-003',crop:'AMA-L',cropName:'Amaranth (Leafy)',status:'PRE_PLANTING',bed:'HT-B2-01',dob:'',vest:'PENDING'},
+   {id:'MCH-HT-2026-000',crop:'MCH',cropName:'Mchicha',status:'COMPLETED',bed:'HT-B3-02',dob:off(-70),vest:'OK',released:''}],
+  proposals:[{id:'ROW-9',crop:'SUK',bed:'HT-B4-01',cases:20,check:'OK',plant:off(3)}],
+  tasks:[{id:'T-1',bed:'HT-B1-01',act:'Harvest',worker:'Lisa Griffin',status:'ASSIGNED',date:off(1)},{id:'T-2',bed:'HT-B1-02',act:'Irrigation check',worker:'James Clay',status:'ASSIGNED',date:off(2)}],
+  exceptions:[{id:'EX-1',bed:'HT-B2-01',sev:'HIGH',text:'Vestibule hours below 24-hr minimum: planting blocked until gate check reads OK.',open:true}]},
+  X:{open:[{id:'S1',worker:'Lisa Griffin',bed:'HT-B1-01',act:'Scouting',status:'RUNNING',start:Date.now()-18*6e4}],scout:[{bed:'HT-B1-02',domain:'Pest',sev:'WATCH',notes:'Sample finding: aphids on lower leaves.',worker:'James Clay',at:off(0)}]}}}
+const HAS_GSR=typeof google!=='undefined'&&google.script&&google.script.run;
+async function raw(body){if(HAS_GSR)return JSON.parse(await new Promise((ok,no)=>google.script.run.withSuccessHandler(ok).withFailureHandler(e=>no(new Error(e.message||e))).apiCall(JSON.stringify(body))));
+ const r=await fetch(URL_,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});return r.json()}
+async function api(action,data={}){const j=await raw({action,session:SESS,...data});
+ if(!j.ok){if(j.auth&&action!=='login')signOut(true);throw new Error(j.error||'Request failed')}return j}
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',3500)}
+function setMode(){$('#mode').className='pill '+(LIVE?'live':'snap');$('#mode').textContent=LIVE?'Live':'Snapshot (sample data)';$('#who').textContent=ME?`${ME.name||ME.id} · ${ME.role||''}`:'';$('#bAuth').textContent=LIVE?'Sign out':'Sign in';$('#sync').textContent='Synced '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+async function load(){if(!SESS){const s=snapshot();D=s.D;X=s.X;LIVE=false;setMode();return render()}
+ try{const j=await api('mBoard');D=j.data;X=j.x;ME=ME||j.data.me;LIVE=true}catch(e){if(!SESS){return load()}const s=snapshot();D=s.D;X=s.X;LIVE=false;toast('Live connection failed, showing snapshot: '+e.message)}
+ setMode();render()}
+function signOut(silent){try{if(SESS&&!silent)api('logout').catch(()=>{})}catch(e){}SESS='';ME=null;try{localStorage.removeItem('ht-sess')}catch(e){}load()}
+async function act(action,data,msg){if(!LIVE)return toast('Sign in to make changes. Snapshot is read-only.');
+ try{await api(action,data);toast(msg);await load()}catch(e){toast(e.message)}}
+const empty=t=>`<div class="empty">${t}</div>`;
+function render(){
+ const co=D.cohorts||[],ex=(D.exceptions||[]).filter(e=>e.open),map={};
+ Object.values(D.beds||{}).forEach(b=>map[b.id]='');
+ Object.keys(D.beds||{}).forEach(id=>{const b=D.beds[id].status;map[id]=b==='AVAILABLE'?'':'active'});
+ co.forEach(c=>map[c.bed]=c.status==='PRE_PLANTING'?'pre':c.status==='COMPLETED'?'post':'active');
+ ex.forEach(e=>{if(e.bed&&e.bed in map)map[e.bed]='hold'});
+ let h='';for(let t=1;t<=6;t++){h+=`<div class="tn"><b>Tunnel HT${t}</b><div class="bd">`;for(let b=1;b<=6;b++){const id=`HT-B${t}-0${b}`;h+=`<div class="b ${map[id]||''}" title="${id}">${b}</div>`}h+='</div></div>'}$('#tun').innerHTML=h;
+ // pending verification
+ const post=co.filter(c=>c.status==='COMPLETED'&&!c.released),pre=co.filter(c=>c.status==='PRE_PLANTING'),pr=D.proposals||[];
+ $('#nPend').textContent=post.length+pre.length+pr.length+' waiting';
+ $('#pend').innerHTML=[...pr.map(p=>`<div class="it"><div><b>${esc(CROPS[p.crop]?CROPS[p.crop][0]:p.crop)}</b> → ${esc(p.bed||'no bed')}<div class="mut">Plant ${esc(p.plant||'TBD')} · ${esc(p.cases||0)} cases · check ${esc(p.check||'n/a')}</div></div><button class="p" data-a="approve" data-id="${esc(p.id)}">Approve</button></div>`),
+  ...pre.map(c=>`<div class="it"><div><b>${esc(c.cohortName||c.cropName||c.crop)}</b> on ${esc(c.bed)}<div class="mut">${esc(c.id)}</div></div><span class="tag ${c.vest==='OK'?'':'hi'}">Vestibule ${esc(c.vest)}</span></div>`),
+  ...post.map(c=>`<div class="it"><div><b>${esc(c.bed)}</b> post-harvest<div class="mut">${esc(c.cropName||c.crop)} · confirm bed is clear and reset</div></div><button class="p" data-a="verify" data-bed="${esc(c.bed)}">Verify bed</button></div>`)].join('')||empty('Nothing waiting. New assignments and finished beds will appear here.');
+ // active lifecycle
+ const live=co.filter(c=>['ACTIVE','HARVEST_READY','HARVESTING'].includes(c.status));$('#nAct').textContent=live.length+' cohorts';
+ $('#act').innerHTML=live.map(c=>{const r=CROPS[c.crop]||[c.cropName,30,45],age=c.dob?-diff(c.dob):0,max=r[2]||45,min=r[1]||30,stage=age<min?`Harvest opens in ${min-age} d`:age<=max?'In harvest window':`${age-max} d past window`;
+  return `<div class="it"><div style="flex:1"><b>${esc(c.cropName||r[0])}</b> · ${esc(c.bed)}<div class="mut">${esc(c.id)} · day ${age} since DOB ${esc(c.dob||'n/a')}</div><div class="bar"><i class="${age>max?'late':''}" style="width:${Math.min(100,Math.round(age/max*100))}%"></i></div></div><span class="tag ${age>max?'hi':''}">${stage}</span></div>`}).join('')||empty('No active cohorts in the tunnels yet.');
+ // calendar
+ const ev=[];(D.tasks||[]).filter(t=>t.status==='ASSIGNED'&&t.date).forEach(t=>ev.push([t.date,`${t.act} · ${t.bed}`,t.worker]));
+ pr.filter(p=>p.plant).forEach(p=>ev.push([p.plant,`Plant ${CROPS[p.crop]?CROPS[p.crop][0]:p.crop} · ${p.bed||'bed TBD'}`,'Planting gate']));
+ live.filter(c=>c.dob&&CROPS[c.crop]).forEach(c=>{const d=new Date(c.dob+'T00:00');d.setDate(d.getDate()+CROPS[c.crop][1]);ev.push([iso(d),`First harvest window opens · ${c.bed}`,c.cropName])});
+ const up=ev.filter(e=>diff(e[0])>=0&&diff(e[0])<=14).sort((a,b)=>a[0]<b[0]?-1:1);
+ $('#cal').innerHTML=up.map(e=>{const n=diff(e[0]);return `<div class="it"><div><b>${esc(e[1])}</b><div class="mut">${esc(e[2])}</div></div><span class="tag">${n===0?'Today':n===1?'Tomorrow':e[0]}</span></div>`}).join('')||empty('No gates or tasks in the next 14 days.');
+ // watchguard
+ const sc=X.scout||[];$('#nScout').textContent=sc.length?sc.length+' findings':'';
+ $('#wg').innerHTML=sc.slice(0,8).map(s=>`<div class="it"><div><b>${esc(s.domain)}</b> · ${esc(s.bed)}<div class="mut">${esc(s.notes)} · ${esc(s.worker)}</div></div><span class="tag ${/HIGH|CRIT|MUST/i.test(s.sev)?'hi':''}">${esc(s.sev)}</span></div>`).join('')||empty('No scouting findings logged. Pest, nutrient and irrigation flags land here.');
+ // workers
+ const op=X.open||[];$('#nWk').textContent=op.length+' on shift';
+ $('#wk').innerHTML=op.map(s=>`<div class="it"><div><b>${esc(s.worker)}</b> at ${esc(s.bed)}<div class="mut">${esc(s.act)} · started ${s.start?new Date(s.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'n/a'}</div></div><span class="tag">${esc(s.status)}</span></div>`).join('')||empty('No one is clocked in right now.');
+ // exceptions
+ $('#nEx').textContent=ex.length+' open';
+ $('#ex').innerHTML=ex.map(e=>`<div class="it"><div><b>${esc(e.bed||'Ranch-wide')}</b> <span class="tag ${/HIGH|CRIT/i.test(e.sev)?'hi':''}">${esc(e.sev)}</span><div class="mut">${esc(e.text)}</div></div><button class="d" data-a="resolve" data-id="${esc(e.id)}">Override</button></div>`).join('')||empty('No blocks to review.');
+}
+document.addEventListener('click',e=>{const b=e.target.closest('button[data-a]');if(!b)return;const a=b.dataset.a;
+ if(a==='approve')act('approve',{ids:[b.dataset.id]},'Approved');
+ if(a==='verify')act('verifyBed',{bed:b.dataset.bed},'Bed verified');
+ if(a==='resolve'){const n=prompt('Reason for override (recorded in the exception log):');if(n)act('resolveException',{id:b.dataset.id,note:n},'Override recorded')}});
+$('#bRef').onclick=()=>load();
+$('#bTest').onclick=async()=>{try{const t=Date.now();await raw({action:'ping'});toast('Workbook backend reachable ('+(Date.now()-t)+' ms)'+(HAS_GSR?' via Apps Script':''))}catch(e){toast('Backend unreachable: '+e.message)}};
+$('#bAuth').onclick=()=>LIVE?signOut():$('#dlg').showModal();
+$('#lX').onclick=()=>$('#dlg').close();
+$('#lf').onsubmit=async e=>{e.preventDefault();$('#lGo').disabled=true;$('#lErr').textContent='';
+ try{const j=await api('login',{userId:$('#uId').value.trim(),pin:$('#uPin').value,ua:navigator.userAgent.slice(0,160)});SESS=j.session;ME=j.user;try{localStorage.setItem('ht-sess',SESS)}catch(x){}$('#uPin').value='';$('#dlg').close();await load();toast('Welcome, '+(ME.name||ME.id))}
+ catch(x){$('#lErr').textContent=x.message}$('#lGo').disabled=false};
+load();
+</script></body></html>
