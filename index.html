@@ -76,7 +76,7 @@ async function raw(body){if(HAS_GSR)return JSON.parse(await new Promise((ok,no)=
 async function api(action,data={}){const j=await raw({action,session:SESS,...data});
  if(!j.ok){if(j.auth&&action!=='login')signOut(true);throw new Error(j.error||'Request failed')}return j}
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',3500)}
-function setMode(){$('#mode').className='pill '+(LIVE?'live':'snap');$('#mode').textContent=LIVE?'Live':'Snapshot (sample data)';$('#who').textContent=ME?`${ME.name||ME.id} · ${ME.role||''}`:'';$('#bAuth').textContent=LIVE?'Sign out':'Sign in';$('#sync').textContent='Synced '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+function setMode(){$('#mode').className='pill '+(LIVE?'live':'snap');$('#mode').textContent=LIVE?'Live · reading workbook':'Not signed in · sample data only';$('#who').textContent=ME?`${ME.name||ME.id} · ${ME.role||''}`:'';$('#bAuth').textContent=LIVE?'Sign out':'Sign in';$('#sync').textContent=(LIVE?'Synced ':'Page loaded ')+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
 async function load(){if(!SESS){const s=snapshot();D=s.D;X=s.X;LIVE=false;setMode();return render()}
  try{const j=await api('mBoard');D=j.data;X=j.x;ME=ME||j.data.me;LIVE=true}catch(e){if(!SESS){return load()}const s=snapshot();D=s.D;X=s.X;LIVE=false;toast('Live connection failed, showing snapshot: '+e.message)}
  setMode();render()}
@@ -128,5 +128,5 @@ $('#lX').onclick=()=>$('#dlg').close();
 $('#lf').onsubmit=async e=>{e.preventDefault();$('#lGo').disabled=true;$('#lErr').textContent='';
  try{const j=await api('login',{userId:$('#uId').value.trim(),pin:$('#uPin').value,ua:navigator.userAgent.slice(0,160)});SESS=j.session;ME=j.user;try{localStorage.setItem('ht-sess',SESS)}catch(x){}$('#uPin').value='';$('#dlg').close();await load();toast('Welcome, '+(ME.name||ME.id))}
  catch(x){$('#lErr').textContent=x.message}$('#lGo').disabled=false};
-load();
+load().then(()=>{if(HAS_GSR&&!LIVE)$('#dlg').showModal()});
 </script></body></html>
